@@ -1,0 +1,20 @@
+# humanstxt.org
+# The humans responsible for this website
+
+/* TEAM */
+  Name: VISION AVAX FOREX Team
+  Contact: contact@visionavaxforex.com
+  WhatsApp: +255746715235
+  Location: Tanzania, East Africa
+
+/* SITE */
+  Last update: 2026/08/07
+  Language: English, Swahili
+  Doctype: HTML5
+  Components: React 18, TypeScript, Tailwind CSS, Supabase
+  Software: Vite, OnSpace Platform
+
+/* THANKS */
+  Groq — AI Text Intelligence
+  OpenRouter — AI Vision Models
+  Google Gemini — Chart Analysis

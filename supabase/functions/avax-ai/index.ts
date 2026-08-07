@@ -5,6 +5,8 @@ import {
   getTextModel,
   buildHeaders,
   logUsage,
+  validateKeyForProvider,
+  detectKeyProvider,
 } from '../_shared/keyResolver.ts';
 
 const corsHeaders = {
@@ -267,12 +269,22 @@ Deno.serve(async (req) => {
 
     // ── Balance / Credits Check Mode ─────────────────────────────────
     if (_checkBalance) {
-      const provider = (_testProvider || 'groq') as string;
-      const keyToUse = ((_testKey || '') as string).trim() || (provider === 'openrouter' ? openRouterKey : groqKey);
+      const provider = ((_testProvider as string) || 'groq');
+      const rawTestKey = ((_testKey as string) || '').trim();
+      const keyToUse = rawTestKey || (provider === 'openrouter' ? openRouterKey : groqKey);
 
       if (!keyToUse || keyToUse.length < 10) {
         return new Response(
-          JSON.stringify({ error: `No valid ${provider} key found. Save an API key first.` }),
+          JSON.stringify({ error: `No valid ${provider} key found. Save an API key first in Admin → API Keys.` }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Validate key format before calling API
+      const formatErr = validateKeyForProvider(keyToUse, provider);
+      if (formatErr) {
+        return new Response(
+          JSON.stringify({ error: formatErr }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -281,7 +293,7 @@ Deno.serve(async (req) => {
         try {
           const res = await fetch('https://openrouter.ai/api/v1/auth/key', {
             headers: {
-              Authorization: `Bearer ${keyToUse}`,
+              'Authorization': `Bearer ${keyToUse}`,
               'Content-Type': 'application/json',
             },
           });
@@ -311,7 +323,7 @@ Deno.serve(async (req) => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${keyToUse}`,
+              'Authorization': `Bearer ${keyToUse}`,
             },
             body: JSON.stringify({
               model: 'llama-3.3-70b-versatile',
@@ -350,15 +362,24 @@ Deno.serve(async (req) => {
 
     // ── Test Mode: verify a given key ──────────────────────────────
     if (_testMode) {
-      const provider = (_testProvider || 'groq') as string;
-      const testKey = ((_testKey || '') as string).trim();
+      const provider = ((_testProvider as string) || 'groq');
+      const testKey = ((_testKey as string) || '').trim();
 
-      // ✅ CRITICAL FIX: Validate key before sending to API
+      // ✅ Validate key exists
       if (!testKey || testKey.length < 10) {
         return new Response(
           JSON.stringify({
             error: `Key is empty or too short. Enter a valid ${provider === 'openrouter' ? 'OpenRouter (sk-or-v1-...)' : 'Groq (gsk_...)'} API key first.`,
           }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // ✅ CRITICAL: Validate key format BEFORE calling API (prevents 401 "Missing Authentication header")
+      const formatErr = validateKeyForProvider(testKey, provider);
+      if (formatErr) {
+        return new Response(
+          JSON.stringify({ error: formatErr }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -375,12 +396,8 @@ Deno.serve(async (req) => {
         });
         if (!testRes.ok) {
           const errText = await testRes.text().catch(() => 'Unknown');
-          // More helpful error for wrong key format
-          const hint = !testKey.startsWith('sk-or-v1-')
-            ? ' Note: OpenRouter keys must start with "sk-or-v1-".'
-            : '';
           return new Response(
-            JSON.stringify({ error: `OpenRouter: ${testRes.status} — ${errText.slice(0, 200)}${hint}` }),
+            JSON.stringify({ error: `OpenRouter: ${testRes.status} — ${errText.slice(0, 200)}` }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -402,11 +419,8 @@ Deno.serve(async (req) => {
         });
         if (!testRes.ok) {
           const errText = await testRes.text().catch(() => 'Unknown');
-          const hint = !testKey.startsWith('gsk_')
-            ? ' Note: Groq keys must start with "gsk_".'
-            : '';
           return new Response(
-            JSON.stringify({ error: `Groq: ${testRes.status} — ${errText.slice(0, 200)}${hint}` }),
+            JSON.stringify({ error: `Groq: ${testRes.status} — ${errText.slice(0, 200)}` }),
             { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -460,15 +474,13 @@ Deno.serve(async (req) => {
 
     if (keyChain.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No API key configured. Add Groq key in Admin → API Keys.' }),
+        JSON.stringify({ error: 'No valid Groq API key configured. Go to Admin → API Keys → Save a Groq key (starts with gsk_).' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     async function callWithFallback(msgs: any[], maxTokens: number): Promise<string> {
       for (const keyEntry of keyChain) {
-        if (!keyEntry.key || keyEntry.key.length < 10) continue;
-
         const model = getTextModel(keyEntry.provider);
         const apiUrl = `${getApiBaseUrl(keyEntry.provider)}/chat/completions`;
         const keyStart = Date.now();
@@ -486,13 +498,9 @@ Deno.serve(async (req) => {
             const candidate = data.choices?.[0]?.message?.content ?? '';
             if (candidate) {
               logUsage(supabaseAdmin, {
-                task_type: 'text',
-                feature: 'avax-ai',
-                key_label: keyEntry.label,
-                key_id: keyEntry.id,
-                provider: keyEntry.provider,
-                success: true,
-                latency_ms: keyLatency,
+                task_type: 'text', feature: 'avax-ai',
+                key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+                success: true, latency_ms: keyLatency,
               });
               console.log(`avax-ai: ✅ [${keyEntry.label}] model=${model} ${keyLatency}ms`);
               return candidate;
@@ -501,26 +509,18 @@ Deno.serve(async (req) => {
             const errTxt = await res.text().catch(() => '');
             console.warn(`avax-ai: ❌ [${keyEntry.label}] HTTP ${res.status} — trying next`, errTxt.slice(0, 100));
             logUsage(supabaseAdmin, {
-              task_type: 'text',
-              feature: 'avax-ai',
-              key_label: keyEntry.label,
-              key_id: keyEntry.id,
-              provider: keyEntry.provider,
-              success: false,
-              latency_ms: keyLatency,
+              task_type: 'text', feature: 'avax-ai',
+              key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+              success: false, latency_ms: keyLatency,
               error_msg: `HTTP ${res.status}: ${errTxt.slice(0, 100)}`,
             });
           }
         } catch (netErr) {
           console.warn(`avax-ai: ❌ [${keyEntry.label}] network error — trying next`, String(netErr));
           logUsage(supabaseAdmin, {
-            task_type: 'text',
-            feature: 'avax-ai',
-            key_label: keyEntry.label,
-            key_id: keyEntry.id,
-            provider: keyEntry.provider,
-            success: false,
-            error_msg: String(netErr).slice(0, 100),
+            task_type: 'text', feature: 'avax-ai',
+            key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+            success: false, error_msg: String(netErr).slice(0, 100),
           });
         }
       }
@@ -556,7 +556,7 @@ Deno.serve(async (req) => {
 
     if (!text) {
       return new Response(
-        JSON.stringify({ error: 'All AI keys failed. Please update Groq key in Admin → API Keys.' }),
+        JSON.stringify({ error: 'All AI keys failed. Please update your Groq key in Admin → API Keys (must start with gsk_).' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

@@ -1,25 +1,53 @@
 {
   "name": "VISION AVAX FOREX",
   "short_name": "AVAX FOREX",
-  "description": "Premium Forex Signals & Trading Education",
+  "description": "Professional Forex Signals, VIP Trading Room & AI-Powered Trading Education",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0a000f",
   "theme_color": "#FF1493",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["finance", "education", "productivity"],
   "gcm_sender_id": "103953800507",
+  "prefer_related_applications": false,
   "icons": [
-  {
-    "src": "/icon-192.png",
-    "sizes": "192x192",
-    "type": "image/png"
-  },
-  {
-    "src": "/icon-512.png",
-    "sizes": "512x512",
-    "type": "image/png"
-  }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ],
-  "categories": ["finance", "education"],
-  "prefer_related_applications": false
+  "shortcuts": [
+    {
+      "name": "Live Signals",
+      "short_name": "Signals",
+      "description": "View live forex trading signals",
+      "url": "/signals",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "VIP Room",
+      "short_name": "VIP",
+      "description": "Access exclusive VIP trading room",
+      "url": "/vip-room",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Courses",
+      "short_name": "Learn",
+      "description": "Browse trading education courses",
+      "url": "/courses",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }

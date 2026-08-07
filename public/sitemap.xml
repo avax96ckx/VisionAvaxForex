@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+  <!-- Homepage -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Forex Signals -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/signals</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Trading Courses -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/courses</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- VIP Room -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/vip-room</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- AVAX AI Hub -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/avax-ai</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Trading Journal -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/trading-journal</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Trading Challenge -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/trading-challenge</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Smart Market -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/smart-market</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Economic Calendar -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/economic</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Authentication -->
+  <url>
+    <loc>https://vision-avax-forex.vercel.app/auth</loc>
+    <lastmod>2026-08-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+</urlset>

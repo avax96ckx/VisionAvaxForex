@@ -1,4 +1,42 @@
+# VISION AVAX FOREX — robots.txt
+# https://vision-avax-forex.vercel.app/
+
 User-agent: *
 Allow: /
+Allow: /signals
+Allow: /courses
+Allow: /auth
 
-Sitemap: https://vision-avax-forex-9bibz8.vercel.app/sitemap.xml
+# Block private/admin areas
+Disallow: /admin
+Disallow: /api/
+Disallow: /_next/
+Disallow: /src/
+
+# Block utility pages
+Disallow: /not-found
+
+# Crawl delay for polite crawling
+Crawl-delay: 10
+
+# Allow Google Image crawler
+User-agent: Googlebot-Image
+Allow: /
+
+# Allow Bingbot
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 10
+
+# Block unwanted bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# Sitemap location
+Sitemap: https://vision-avax-forex.vercel.app/sitemap.xml

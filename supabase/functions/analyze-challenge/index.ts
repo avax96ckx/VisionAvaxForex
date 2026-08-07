@@ -75,11 +75,12 @@ serve(async (req) => {
       );
     }
 
+    // resolveKeyChain validates key formats — non-matching backup keys are auto-skipped
     const keyChain = resolveKeyChain(apiKeys, 'image', 'analyze-challenge');
 
     if (keyChain.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No image API key configured. Add OpenRouter key in Admin → API Keys.' }),
+        JSON.stringify({ error: 'No valid OpenRouter API key configured. Go to Admin → API Keys → Save an OpenRouter key (sk-or-v1-...).' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -110,8 +111,7 @@ For pips calculation:
       let submissionProcessed = false;
 
       for (const keyEntry of keyChain) {
-        if (!keyEntry.key || keyEntry.key.length < 10) continue;
-
+        // getVisionModel returns correct model per provider (updated - no deprecated models)
         const model = getVisionModel(keyEntry.provider);
         const apiUrl = `${getApiBaseUrl(keyEntry.provider)}/chat/completions`;
         const keyStart = Date.now();
@@ -150,13 +150,9 @@ For pips calculation:
               if (jsonMatch) result = JSON.parse(jsonMatch[0]);
             } catch { /* use default */ }
             logUsage(supabase, {
-              task_type: 'image',
-              feature: 'analyze-challenge',
-              key_label: keyEntry.label,
-              key_id: keyEntry.id,
-              provider: keyEntry.provider,
-              success: true,
-              latency_ms: keyLatency,
+              task_type: 'image', feature: 'analyze-challenge',
+              key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+              success: true, latency_ms: keyLatency,
             });
             console.log(`analyze-challenge: ✅ [${keyEntry.label}] processed sub ${sub.id}`);
             submissionProcessed = true;
@@ -165,26 +161,18 @@ For pips calculation:
             const errTxt = await response.text().catch(() => '');
             console.warn(`analyze-challenge: ❌ [${keyEntry.label}] HTTP ${response.status} — trying next`, errTxt.slice(0, 100));
             logUsage(supabase, {
-              task_type: 'image',
-              feature: 'analyze-challenge',
-              key_label: keyEntry.label,
-              key_id: keyEntry.id,
-              provider: keyEntry.provider,
-              success: false,
-              latency_ms: keyLatency,
+              task_type: 'image', feature: 'analyze-challenge',
+              key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+              success: false, latency_ms: keyLatency,
               error_msg: `HTTP ${response.status}: ${errTxt.slice(0, 100)}`,
             });
           }
         } catch (err) {
           console.error(`analyze-challenge: ❌ [${keyEntry.label}] error — trying next`, err);
           logUsage(supabase, {
-            task_type: 'image',
-            feature: 'analyze-challenge',
-            key_label: keyEntry.label,
-            key_id: keyEntry.id,
-            provider: keyEntry.provider,
-            success: false,
-            error_msg: String(err).slice(0, 100),
+            task_type: 'image', feature: 'analyze-challenge',
+            key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+            success: false, error_msg: String(err).slice(0, 100),
           });
         }
       }

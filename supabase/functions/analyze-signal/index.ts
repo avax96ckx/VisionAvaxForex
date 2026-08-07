@@ -106,12 +106,13 @@ RULES:
     };
 
     // ── Key chain: OpenRouter primary (+ env fallback + backups) ──
+    // resolveKeyChain now validates key formats — non-OpenRouter backup keys are auto-skipped
     const keyChain = resolveKeyChain(apiKeys, 'image', 'analyze-signal');
 
     if (keyChain.length === 0) {
       return new Response(
         JSON.stringify({
-          error: 'No API key configured. Add OpenRouter key in Admin → API Keys.',
+          error: 'No valid OpenRouter API key configured. Go to Admin → API Keys → Save an OpenRouter key (must start with sk-or-v1-). Note: OpenAI, Google, or ElevenLabs keys will NOT work here.',
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -121,11 +122,9 @@ RULES:
     let usedKeyEntry: typeof keyChain[number] | null = null;
 
     for (const keyEntry of keyChain) {
-      if (!keyEntry.key || keyEntry.key.length < 10) {
-        console.warn(`analyze-signal: skipping key [${keyEntry.label}] — empty/too short`);
-        continue;
-      }
-
+      // getVisionModel returns:
+      // - 'google/gemini-2.5-flash' for openrouter
+      // - 'meta-llama/llama-4-scout-17b-16e-instruct' for groq (llama-3.2-11b deprecated)
       const model = getVisionModel(keyEntry.provider);
       const apiUrl = `${getApiBaseUrl(keyEntry.provider)}/chat/completions`;
       const keyStart = Date.now();
@@ -151,13 +150,9 @@ RULES:
             rawText = candidate;
             usedKeyEntry = keyEntry;
             logUsage(supabaseAdmin, {
-              task_type: 'image',
-              feature: 'analyze-signal',
-              key_label: keyEntry.label,
-              key_id: keyEntry.id,
-              provider: keyEntry.provider,
-              success: true,
-              latency_ms: keyLatency,
+              task_type: 'image', feature: 'analyze-signal',
+              key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+              success: true, latency_ms: keyLatency,
             });
             console.log(`analyze-signal: ✅ success [${keyEntry.label}] model=${model} ${keyLatency}ms`);
             break;
@@ -169,26 +164,18 @@ RULES:
             errTxt.slice(0, 150)
           );
           logUsage(supabaseAdmin, {
-            task_type: 'image',
-            feature: 'analyze-signal',
-            key_label: keyEntry.label,
-            key_id: keyEntry.id,
-            provider: keyEntry.provider,
-            success: false,
-            latency_ms: keyLatency,
+            task_type: 'image', feature: 'analyze-signal',
+            key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+            success: false, latency_ms: keyLatency,
             error_msg: `HTTP ${res.status}: ${errTxt.slice(0, 100)}`,
           });
         }
       } catch (netErr) {
         console.warn(`analyze-signal: ❌ [${keyEntry.label}] network error — trying next`, String(netErr));
         logUsage(supabaseAdmin, {
-          task_type: 'image',
-          feature: 'analyze-signal',
-          key_label: keyEntry.label,
-          key_id: keyEntry.id,
-          provider: keyEntry.provider,
-          success: false,
-          error_msg: String(netErr).slice(0, 100),
+          task_type: 'image', feature: 'analyze-signal',
+          key_label: keyEntry.label, key_id: keyEntry.id, provider: keyEntry.provider,
+          success: false, error_msg: String(netErr).slice(0, 100),
         });
       }
     }
@@ -197,7 +184,7 @@ RULES:
       return new Response(
         JSON.stringify({
           error:
-            'All API keys failed. Please verify your OpenRouter key in Admin → API Keys (key must start with sk-or-v1-).',
+            'All API keys failed. Fix: Go to Admin → API Keys → Save a valid OpenRouter key (must start with sk-or-v1-). Keys from OpenAI, Google, or ElevenLabs will not work with OpenRouter.',
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
