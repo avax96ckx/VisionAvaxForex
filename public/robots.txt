@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://vision-avax-forex-9bibz8.vercel.app/sitemap.xml
