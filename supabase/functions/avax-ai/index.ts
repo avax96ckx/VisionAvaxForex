@@ -412,7 +412,7 @@ Deno.serve(async (req) => {
           method: 'POST',
           headers: buildHeaders('groq', testKey),
           body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model: 'openai/gpt-oss-20b',
             messages: [{ role: 'user', content: 'Reply with exactly: OK' }],
             max_tokens: 5,
           }),
