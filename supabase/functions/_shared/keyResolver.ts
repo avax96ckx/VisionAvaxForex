@@ -191,7 +191,7 @@ export function getApiBaseUrl(provider: string): string {
 /** Best text model for provider */
 export function getTextModel(provider: string): string {
   return provider === 'groq'
-    ? 'llama-3.3-70b-versatile'
+    ? 'openai/gpt-oss-20b'
     : 'google/gemini-2.5-flash';
 }
 
@@ -202,7 +202,7 @@ export function getTextModel(provider: string): string {
  */
 export function getVisionModel(provider: string): string {
   return provider === 'groq'
-    ? 'meta-llama/llama-4-scout-17b-16e-instruct'  // ✅ Llama 4 Scout — supports vision
+    ? 'meta-openai/gpt-oss-20b'  // ✅ Llama 4 Scout — supports vision
     : 'google/gemini-2.5-flash';                    // ✅ OpenRouter vision model
 }
 
