@@ -326,7 +326,7 @@ Deno.serve(async (req) => {
               'Authorization': `Bearer ${keyToUse}`,
             },
             body: JSON.stringify({
-              model: 'llama-3.3-70b-versatile',
+              model: 'openai/gpt-oss-20b',
               messages: [{ role: 'user', content: 'hi' }],
               max_tokens: 1,
             }),
